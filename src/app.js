@@ -11,8 +11,8 @@ import usersRouter from './routers/users.router.js';
 import session from 'express-session';
 import mongoStore from 'connect-mongo';
 import passport from 'passport';
-import config from './config.js';
-import './db/dbConfig.js';
+import config from './config/config.js';
+import './config/dbConfig.js';
 import './middlewares/passport.middleware.js';
 
 const app = express();
