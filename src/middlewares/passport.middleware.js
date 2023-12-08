@@ -1,9 +1,10 @@
 import passport from 'passport';
-import { usersManager } from '../managers/usersManager.js';
+//import { usersManager } from '../managers/usersManager.js';
+import { usersMongo } from '../daos/users.mongo.js';
 import { Strategy as LocalStrategy } from 'passport-local';
 import { Strategy as GithubStrategy } from 'passport-github2';
 import { hashData, compareData } from '../utils.js';
-import config from '../config.js';
+import config from '../config/config.js';
 
 passport.use("signup", new LocalStrategy(
     {
@@ -12,12 +13,12 @@ passport.use("signup", new LocalStrategy(
     },
     async (req, email, password, done) => {
         try {
-            const userFound = await usersManager.findByEmail(email);
+            const userFound = await usersMongo.findByEmail(email);
             if (userFound) {
                 return done(null, false);
             }
             const hashedPass = await hashData(password);
-            const createdUser = await usersManager.createOne({ ...req.body, password: hashedPass });
+            const createdUser = await usersMongo.createOne({ ...req.body, password: hashedPass });
             done(null, createdUser);
         } catch (error) {
             done(error);
@@ -31,9 +32,9 @@ passport.use("login", new LocalStrategy(
     },
     async (email, password, done) => {
         try {
-            console.log("email: ", email)
-            const userFound = await usersManager.findByEmail(email);
-            console.log(userFound)
+            //console.log("email: ", email)
+            const userFound = await usersMongo.findByEmail(email);
+            //console.log(userFound)
             if (!userFound) {
                 return done(null, false);
             }
@@ -57,7 +58,7 @@ passport.use("github", new GithubStrategy(
     async (accessToken, refreshToken, profile, done) => {
         const hashedPass = await hashData("password")
         try {
-            const userFound = await usersManager.findByEmail(profile._json.email);
+            const userFound = await usersMongo.findByEmail(profile._json.email);
             //login
             if (userFound) {
                 if (userFound.from_github) {
@@ -76,7 +77,7 @@ passport.use("github", new GithubStrategy(
                     isAdmin: profile._json.email === "adminCoder@coder.com" && this.password === "adminCod3r123" ? true : false,
                     from_github: true,
                 }
-                const createdUser = await usersManager.createOne(newUser);
+                const createdUser = await usersMongo.createOne(newUser);
                 done(null, createdUser);
             }
         } catch (error) {
@@ -91,7 +92,7 @@ passport.serializeUser(function (user, done) {
 
 passport.deserializeUser(async function (id, done) {
     try {
-        const user = await usersManager.findById(id);
+        const user = await usersMongo.findById(id);
         done(null, user);
     } catch (error) {
         done(error);
